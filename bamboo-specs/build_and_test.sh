@@ -19,6 +19,7 @@ try dotnet sln remove JuvoReactNative/Tizen/JuvoReactNative.csproj
 try dotnet build /nodeReuse:false /p:"AuthorPath=${CERTS_PATH}/partner_2019.p12;AuthorPass=${bamboo_AuthorPassword}" /p:"DistributorPath=${CERTS_PATH}/tizen-distributor-signer.p12;DistributorPass=${bamboo_DistributorPassword}"
 
 try dotnet test /nodeReuse:false JuvoPlayer.Tests/JuvoPlayer.Tests.csproj --logger:trx -f netcoreapp2.0
+try dotnet test /nodeReuse:false JuvoPlayer2.0.Tests/JuvoPlayer2.0.Tests.csproj --logger:trx -f netcoreapp2.2
 
 echo "Cyclomatic complexity results:"
 CCM.exe bamboo-specs/ccm.config | tee CyclomaticComplexityReport.log
