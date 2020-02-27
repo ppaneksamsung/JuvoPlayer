@@ -1,0 +1,31 @@
+<Project Sdk="Tizen.NET.Sdk/1.0.9">
+
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <TargetFrameworks>netcoreapp2.2;netstandard2.0;tizen50</TargetFrameworks>
+        <RootNamespace>JuvoPlayer2_0</RootNamespace>
+        <TizenCreateTpkOnBuild>false</TizenCreateTpkOnBuild>
+        <Version>0.0.1</Version>
+        <PackageReleaseNotes>Release to be presented to the public. It will be uploaded to the SDF GitHub site.</PackageReleaseNotes>
+        <Company>SRPOL MVS</Company>
+        <Description>Reference for video streaming Tizen .Net TV applications.</Description>
+        <Copyright>Samsung Electronics</Copyright>
+        <AssemblyVersion>0.0.0.1</AssemblyVersion>
+        <FileVersion>0.0.0.1</FileVersion>
+        <SignAssembly>false</SignAssembly>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Folder Include="API" />
+      <Folder Include="Impl\Blocks" />
+      <Folder Include="Impl\Common" />
+      <Folder Include="Impl\Utils" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Nito.AsyncEx.Context" Version="5.0.0-pre-05" />
+      <PackageReference Include="Nito.AsyncEx.Coordination" Version="5.0.0-pre-05" />
+      <PackageReference Include="System.Threading.Channels" Version="4.5.0" />
+    </ItemGroup>
+
+</Project>
