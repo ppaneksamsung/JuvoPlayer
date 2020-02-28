@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using JuvoPlayer2_0.Impl.Framework;
 using NSubstitute;
 using NUnit.Framework;
+using static JuvoPlayer2_0.Tests.Impl.Framework.TestUtils;
 
 namespace JuvoPlayer2_0.Tests.Impl.Framework
 {
@@ -111,13 +112,6 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
         {
             var reader = Substitute.ForPartsOf<ChannelReader<IEvent>>();
             return reader;
-        }
-
-        private static IEvent StubEvent(EventFlags flags = EventFlags.Downstream)
-        {
-            var @event = Substitute.For<IEvent>();
-            @event.Flags.Returns(flags);
-            return @event;
         }
     }
 }

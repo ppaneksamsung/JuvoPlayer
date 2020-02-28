@@ -17,15 +17,6 @@
  *
  */
 
-using System;
+using System.Runtime.CompilerServices;
 
-namespace JuvoPlayer2_0.Impl.Framework
-{
-    [Flags] public enum EventFlags
-    {
-        None = 0,
-        IsPrioritized = 1,
-        Upstream = 2,
-        Downstream = 4
-    }
-}
+[assembly: InternalsVisibleTo("JuvoPlayer2.0.Tests")]

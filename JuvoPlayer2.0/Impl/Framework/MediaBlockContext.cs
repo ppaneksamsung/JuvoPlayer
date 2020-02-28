@@ -27,21 +27,39 @@ namespace JuvoPlayer2_0.Impl.Framework
 {
     public class MediaBlockContext : IMediaBlockContext
     {
+        /// <summary>
+        /// Streaming thread where the controlled MediaBlock executes.
+        /// </summary>
         private readonly AsyncContextThread _streamingThread;
+
+        /// <summary>
+        /// Set to true when any of pads is flushing.
+        /// </summary>
         private bool _isFlushing;
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+
+        /// <summary>
+        /// Source used to stop (cancel) MediaBlock's execution.
+        /// </summary>
+        private readonly CancellationTokenSource _stopCancellationTokenSource = new CancellationTokenSource();
+
+        /// <summary>
+        /// Helper list with all pad readers (prioritized and not).
+        /// </summary>
+        private readonly List<PadReader> _allReaders;
 
         public IList<IPad> SinkPads { get; }
         public IList<IPad> SourcePads { get; }
         public SynchronizationContext SynchronizationContext => _streamingThread.Context.SynchronizationContext;
+        public IMediaBlock MediaBlock { get; }
+        public Task Completion { get; private set; }
 
         private class PadReader
         {
             private readonly bool _isPriority;
 
-            public Pad Pad { get; }
+            public IInputPad Pad { get; }
 
-            public PadReader(Pad pad, bool isPriority)
+            public PadReader(IInputPad pad, bool isPriority)
             {
                 Pad = pad;
                 _isPriority = isPriority;
@@ -58,77 +76,78 @@ namespace JuvoPlayer2_0.Impl.Framework
             }
         }
 
-        public IMediaBlock MediaBlock { get; }
-
-        public MediaBlockContext(IMediaBlock mediaBlock)
+        public MediaBlockContext(IMediaBlock mediaBlock, IEnumerable<IInputPad> sinkPads,
+            IEnumerable<IInputPad> sourcePads)
         {
             _streamingThread = new AsyncContextThread();
-            SinkPads = new List<IPad>();
-            SourcePads = new List<IPad>();
             MediaBlock = mediaBlock;
-        }
+            SinkPads = sinkPads.Cast<IPad>().ToList();
+            SourcePads = sourcePads.Cast<IPad>().ToList();
 
-        public void Start()
-        {
-            _streamingThread.Factory.StartNew(async () =>
-            {
-                await MediaBlock.Init(this);
-                await HandleEvents(_cancellationTokenSource.Token);
-            });
-        }
-
-        public void Stop()
-        {
-            _cancellationTokenSource.Cancel();
+            _allReaders = AllPadReaders(true)
+                .Concat(AllPadReaders(false))
+                .ToList();
         }
 
         private IEnumerable<PadReader> AllPadReaders(bool isPriority)
         {
-            var allPads = SinkPads.Concat(SourcePads).Cast<Pad>();
+            var allPads = SinkPads.Concat(SourcePads).Cast<IInputPad>();
             return allPads.Select(pad => new PadReader(pad, isPriority));
+        }
+
+        public void Start()
+        {
+            Completion = _streamingThread.Factory.StartNew(async () =>
+            {
+                await MediaBlock.Init(this);
+                await HandleEvents(_stopCancellationTokenSource.Token);
+            }).Unwrap();
+        }
+
+        public void Stop()
+        {
+            _stopCancellationTokenSource.Cancel();
         }
 
         private async Task HandleEvents(CancellationToken token)
         {
-            var allReaders = AllPadReaders(true)
-                .Concat(AllPadReaders(false))
-                .ToList();
-
             while (!token.IsCancellationRequested)
             {
-                for (var i = 0; i < allReaders.Count;)
-                {
-                    if (allReaders[i].TryRead(out var @event))
-                    {
-                        await HandleEvent(allReaders[i].Pad, @event, token);
-                        i = 0;
-                        continue;
-                    }
-
-                    ++i;
-                }
-
-                var waitPool = allReaders
-                    .Select(reader => reader.WaitToReadAsync(token).AsTask())
-                    .Where(waitingRead => !waitingRead.IsCompleted)
-                    .ToList();
-
-                var waitTask = waitPool.Count != allReaders.Count ? Task.CompletedTask : Task.WhenAny(waitPool);
-                await waitTask;
+                await HandleEventOrWait(token);
             }
         }
 
-        private Task HandleEvent(IPad targetPad, IEvent @event, CancellationToken token)
+        internal async Task HandleEventOrWait(CancellationToken token)
         {
-            if (@event.GetType() == typeof(FlushStartEvent) || @event.GetType() == typeof(FlushStopEvent))
-                HandleFlushEvents(@event);
+            foreach (var reader in _allReaders)
+            {
+                if (!reader.TryRead(out var @event)) continue;
+                await HandleEvent(reader.Pad, @event);
+                return;
+            }
 
-            return _isFlushing ? Task.CompletedTask : MediaBlock.HandlePadEvent(targetPad, @event);
+            var waitPool = _allReaders
+                .Select(reader => reader.WaitToReadAsync(token).AsTask())
+                .Where(waitingRead => !waitingRead.IsCompleted)
+                .ToList();
+
+            var waitTask = waitPool.Count != _allReaders.Count ? Task.CompletedTask : Task.WhenAny(waitPool);
+            await waitTask;
+        }
+
+        private async Task HandleEvent(IPad targetPad, IEvent @event)
+        {
+            if (@event.GetType() == typeof(FlushStopEvent))
+                HandleFlushEvents(@event);
+            if (!_isFlushing)
+                await MediaBlock.HandlePadEvent(targetPad, @event);
+            if (@event.GetType() == typeof(FlushStartEvent))
+                HandleFlushEvents(@event);
         }
 
         private void HandleFlushEvents(IEvent @event)
         {
-            var allPads = SinkPads.Concat(SourcePads).Cast<Pad>();
+            var allPads = SinkPads.Concat(SourcePads).Cast<IInputPad>();
 
             if (@event.GetType() == typeof(FlushStartEvent))
             {

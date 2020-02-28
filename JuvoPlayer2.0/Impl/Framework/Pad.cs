@@ -24,7 +24,7 @@ using System.Threading.Tasks;
 
 namespace JuvoPlayer2_0.Impl.Framework
 {
-    public class Pad : IPad
+    public class Pad : IInputPad
     {
         private readonly ChannelWriter<IEvent> _writer;
         private readonly ChannelReader<IEvent> _reader;

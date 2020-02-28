@@ -17,15 +17,17 @@
  *
  */
 
-using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace JuvoPlayer2_0.Impl.Framework
 {
-    [Flags] public enum EventFlags
+    public interface IInputPad : IPad
     {
-        None = 0,
-        IsPrioritized = 1,
-        Upstream = 2,
-        Downstream = 4
+        ValueTask<bool> WaitToReadAsync(CancellationToken token);
+        bool TryRead(out IEvent @event);
+        ValueTask<bool> WaitToPriorityReadAsync(CancellationToken token);
+        bool TryPriorityRead(out IEvent @event);
+        bool IsFlushing { get; set; }
     }
 }
