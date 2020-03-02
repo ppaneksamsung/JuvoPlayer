@@ -82,8 +82,8 @@ namespace JuvoPlayer2_0.Impl.Framework
             contexts.Add(new MediaBlockContext(_root, rootArgs.SinkPads, rootArgs.SourcePads));
             _unlinkedMediaPipeline.Remove(_root);
 
-            foreach (var (block, args) in _unlinkedMediaPipeline)
-                contexts.Add(new MediaBlockContext(block, args.SinkPads, args.SourcePads));
+            foreach (var keyValue in _unlinkedMediaPipeline)
+                contexts.Add(new MediaBlockContext(keyValue.Key, keyValue.Value.SinkPads, keyValue.Value.SourcePads));
 
             _unlinkedMediaPipeline.Clear();
             _root = null;
