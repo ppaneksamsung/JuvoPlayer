@@ -75,6 +75,36 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
             Assert.ThrowsAsync<InvalidOperationException>(async () => { await pad.SendEvent(@event); });
         }
 
+        [Test]
+        public void SendEvent_SendingWhileFlushing_Rejects()
+        {
+            var pad = CreatePad();
+            pad.IsFlushing = true;
+            var @event = StubEvent();
+
+            Assert.ThrowsAsync<InvalidOperationException>(async () => { await pad.SendEvent(@event); });
+        }
+
+        [Test]
+        public void SendEvent_SendingWhileFlushing_DoesntRejectFlushStart()
+        {
+            var pad = CreatePad();
+            pad.IsFlushing = true;
+            var @event = new FlushStartEvent();
+
+            Assert.DoesNotThrowAsync(async () => { await pad.SendEvent(@event); });
+        }
+
+        [Test]
+        public void SendEvent_SendingWhileFlushing_DoesntRejectFlushStop()
+        {
+            var pad = CreatePad();
+            pad.IsFlushing = true;
+            var @event = new FlushStopEvent();
+
+            Assert.DoesNotThrowAsync(async () => { await pad.SendEvent(@event); });
+        }
+
         private class CreateArgs
         {
             public MediaType MediaType { get; set; }

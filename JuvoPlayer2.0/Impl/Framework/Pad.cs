@@ -49,15 +49,21 @@ namespace JuvoPlayer2_0.Impl.Framework
         public ValueTask SendEvent(IEvent @event, CancellationToken token = default)
         {
             ValidateEvent(@event);
-            ValidateState();
+            ValidateFlushState(@event);
             var writer = @event.Flags.HasFlag(EventFlags.IsPrioritized) ? _priorityWriter : _writer;
             return writer.WriteAsync(@event, token);
         }
 
-        private void ValidateState()
+        private void ValidateFlushState(IEvent @event)
         {
-            if (IsFlushing)
-                throw new InvalidOperationException("Cannot send event while pad flushes");
+            if (!IsFlushing)
+                return;
+
+            foreach (var flushEventType in new [] { typeof(FlushStartEvent), typeof(FlushStopEvent)})
+                if (@event.GetType() == flushEventType)
+                    return;
+
+            throw new InvalidOperationException("Cannot send event while pad flushes");
         }
 
         private void ValidateEvent(IEvent @event)

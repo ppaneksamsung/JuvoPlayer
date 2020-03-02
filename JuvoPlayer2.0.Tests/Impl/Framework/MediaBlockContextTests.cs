@@ -165,6 +165,54 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
             await mediaBlockMock.DidNotReceive().HandlePadEvent(padStub, Arg.Is(normalEvent));
         }
 
+        [Test]
+        public async Task Flushing_FlushStartEventSent_FlushesAllPads()
+        {
+            var mediaBlockMock = StubMediaBlock();
+            var flushStart = new FlushStartEvent();
+            var sinkPadStub = StubPad(PadDirection.Sink)
+                .WithEvent(flushStart);
+            var sourcePadStub = StubPad(PadDirection.Source);
+            var createArgs = new CreateArgs
+            {
+                MediaBlock = mediaBlockMock
+            };
+            createArgs.AddPad(sinkPadStub);
+            createArgs.AddPad(sourcePadStub);
+            var context = Create(createArgs);
+
+            await context.HandleEventOrWait(CancellationToken.None); // FlushStart event is received
+
+            Assert.That(sinkPadStub.IsFlushing, Is.True);
+            Assert.That(sourcePadStub.IsFlushing, Is.True);
+        }
+
+        [Test]
+        public async Task Flushing_FlushStopEventSent_StopsFlushingAllPads()
+        {
+            var mediaBlockMock = StubMediaBlock();
+            var flushStart = new FlushStartEvent();
+            var flushStop = new FlushStopEvent();
+            var sinkPadStub = StubPad(PadDirection.Sink)
+                .WithEvent(flushStart);
+            var sourcePadStub = StubPad(PadDirection.Source);
+            var createArgs = new CreateArgs
+            {
+                MediaBlock = mediaBlockMock
+            };
+            createArgs.AddPad(sinkPadStub);
+            createArgs.AddPad(sourcePadStub);
+            var context = Create(createArgs);
+
+            await context.HandleEventOrWait(CancellationToken.None); // FlushStart event is received
+            sinkPadStub.WithoutEvents();
+            sinkPadStub.WithEvent(flushStop);
+            await context.HandleEventOrWait(CancellationToken.None); // FlushStop event is received
+
+            Assert.That(sinkPadStub.IsFlushing, Is.False);
+            Assert.That(sourcePadStub.IsFlushing, Is.False);
+        }
+
         private IInputPad CreatePad(PadDirection type, Priority priority, Dictionary<Priority, IEvent> events)
         {
             var pad = StubPad(type);
@@ -217,7 +265,6 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
                 }
             }
         }
-
 
         private static IMediaBlock StubMediaBlock()
         {
