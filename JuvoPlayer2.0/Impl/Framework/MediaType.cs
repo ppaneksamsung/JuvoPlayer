@@ -21,6 +21,7 @@ namespace JuvoPlayer2_0.Impl.Framework
 {
     public enum MediaType
     {
+        Unknown,
         HLS,
         DASH,
         MP4,

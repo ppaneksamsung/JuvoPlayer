@@ -18,41 +18,52 @@
  */
 
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace JuvoPlayer2_0.Impl.Framework
 {
     public class MediaPipeline : IMediaPipeline
     {
-        private readonly IList<MediaBlockContext> _blocks;
-        private readonly SourceMediaBlock _source;
+        private readonly IInputPad _srcPad;
+        public IList<IMediaBlockContext> Blocks { get; }
 
-        public MediaPipeline(IList<MediaBlockContext> blocks)
+        public MediaPipeline(IList<IMediaBlockContext> blocks, IInputPad srcPad)
         {
-            _blocks = blocks;
-            _source = _blocks.First().MediaBlock as SourceMediaBlock;
+            _srcPad = srcPad;
+            Blocks = blocks;
         }
 
-        public void PushEvent(IEvent @event)
+        public ValueTask Send(IEvent @event)
         {
-            _source.Add(@event);
+            return _srcPad.SendEvent(@event);
         }
 
-        public Task<IEvent> TakeEvent()
+        public async ValueTask<bool> WaitForReadAsync()
         {
-            return _source.TakeAsync();
+            var cts = new CancellationTokenSource();
+            var readAsync = _srcPad.WaitToReadAsync(cts.Token).AsTask();
+            var readPriorityAsync = _srcPad.WaitToPriorityReadAsync(cts.Token).AsTask();
+            await Task.WhenAny(readAsync, readPriorityAsync);
+            cts.Cancel();
+            return true;
+        }
+
+        public bool TryRead(out IEvent @event)
+        {
+            @event = default;
+            return _srcPad.TryPriorityRead(out @event) || _srcPad.TryRead(out @event);
         }
 
         public void Start()
         {
-            foreach (var block in _blocks)
+            foreach (var block in Blocks)
                 block.Start();
         }
 
         public void Stop()
         {
-            foreach (var block in _blocks)
+            foreach (var block in Blocks)
                 block.Stop();
         }
     }

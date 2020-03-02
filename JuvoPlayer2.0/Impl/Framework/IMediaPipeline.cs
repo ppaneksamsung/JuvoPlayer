@@ -23,8 +23,9 @@ namespace JuvoPlayer2_0.Impl.Framework
 {
     public interface IMediaPipeline
     {
-        void PushEvent(IEvent @event);
-        Task<IEvent> TakeEvent();
+        ValueTask Send(IEvent @event);
+        ValueTask<bool> WaitForReadAsync();
+        bool TryRead(out IEvent @event);
         void Start();
         void Stop();
     }

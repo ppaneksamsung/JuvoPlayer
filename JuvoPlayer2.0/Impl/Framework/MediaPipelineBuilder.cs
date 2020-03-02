@@ -18,36 +18,90 @@
  */
 
 using System.Collections.Generic;
+using System.Threading.Channels;
 
 namespace JuvoPlayer2_0.Impl.Framework
 {
     public class MediaPipelineBuilder
     {
-        // private readonly IList<IMediaBlock> _unlinkedMediaPipeline = new List<IMediaBlock>();
+        private class MediaBlockContextArgs
+        {
+            public MediaBlockContextArgs()
+            {
+                SinkPads = new List<IInputPad>();
+                SourcePads = new List<IInputPad>();
+            }
 
-        private readonly IDictionary<IMediaBlock, IList<IMediaBlock>> _unlinkedMediaPipeline = new Dictionary<IMediaBlock, IList<IMediaBlock>>();
-        private IMediaBlock root;
+            public IList<IInputPad> SinkPads { get; }
+            public IList<IInputPad> SourcePads { get; }
+        }
 
+        private readonly IDictionary<IMediaBlock, MediaBlockContextArgs> _unlinkedMediaPipeline =
+            new Dictionary<IMediaBlock, MediaBlockContextArgs>();
+
+        private IMediaBlock _root;
 
         public MediaPipelineBuilder SetRoot(IMediaBlock block)
         {
-            root = block;
+            _root = block;
             return this;
         }
 
         public MediaPipelineBuilder LinkMediaBlocks(IMediaBlock from, IMediaBlock to)
         {
-            _unlinkedMediaPipeline[from].Add(to);
+            if (!_unlinkedMediaPipeline.ContainsKey(from))
+                _unlinkedMediaPipeline[from] = new MediaBlockContextArgs();
+            if (!_unlinkedMediaPipeline.ContainsKey(to))
+                _unlinkedMediaPipeline[to] = new MediaBlockContextArgs();
+
+            var fromArgs = _unlinkedMediaPipeline[from];
+            var toArgs = _unlinkedMediaPipeline[to];
+
+            var (srcPad, sinkPad) = CreateLinkedPads();
+
+            fromArgs.SourcePads.Add(srcPad);
+            toArgs.SinkPads.Add(sinkPad);
             return this;
         }
 
         public IMediaPipeline CreatePipeline()
         {
-            if (_unlinkedMediaPipeline.Count == 0)
-                return null;
-
-            return new MediaPipeline(null);
+            return CreatePipelineImpl();
         }
 
+        internal MediaPipeline CreatePipelineImpl()
+        {
+            if (_unlinkedMediaPipeline.Count == 0 || _root == null)
+                return null;
+
+            IList<IMediaBlockContext> contexts = new List<IMediaBlockContext>();
+
+            var rootArgs = _unlinkedMediaPipeline[_root];
+            var (srcPad, sinkPad) = CreateLinkedPads();
+            rootArgs.SinkPads.Add(sinkPad);
+            contexts.Add(new MediaBlockContext(_root, rootArgs.SinkPads, rootArgs.SourcePads));
+            _unlinkedMediaPipeline.Remove(_root);
+
+            foreach (var (block, args) in _unlinkedMediaPipeline)
+                contexts.Add(new MediaBlockContext(block, args.SinkPads, args.SourcePads));
+
+            _unlinkedMediaPipeline.Clear();
+            _root = null;
+            return new MediaPipeline(contexts, srcPad);
+        }
+
+        private (IInputPad, IInputPad) CreateLinkedPads()
+        {
+            var downChannel = Channel.CreateBounded<IEvent>(5);
+            var downPriorityChannel = Channel.CreateBounded<IEvent>(2);
+            var upChannel = Channel.CreateBounded<IEvent>(5);
+            var upPriorityChannel = Channel.CreateBounded<IEvent>(2);
+
+            var srcPad = new Pad(MediaType.Unknown, PadDirection.Source, downChannel.Writer,
+                upChannel.Reader, downPriorityChannel.Writer, upPriorityChannel.Reader);
+            var sinkPad = new Pad(MediaType.Unknown, PadDirection.Sink, upChannel.Writer,
+                downChannel.Reader, upPriorityChannel.Writer, downPriorityChannel.Reader);
+            return (srcPad, sinkPad);
+        }
     }
 }

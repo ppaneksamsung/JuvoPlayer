@@ -75,5 +75,10 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
             @event.Flags.Returns(flags);
             return @event;
         }
+
+        public static IMediaBlock StubMediaBlock()
+        {
+            return Substitute.For<IMediaBlock>();
+        }
     }
 }

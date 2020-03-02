@@ -24,6 +24,8 @@ namespace JuvoPlayer2_0.Impl.Framework
 {
     public interface IMediaBlockContext
     {
+        void Start();
+        void Stop();
         IList<IPad> SinkPads { get; }
         IList<IPad> SourcePads { get; }
         SynchronizationContext SynchronizationContext { get; }

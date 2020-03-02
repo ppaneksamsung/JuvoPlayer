@@ -24,7 +24,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using JuvoPlayer2_0.Impl.Framework;
 using NSubstitute;
-using NSubstitute.ClearExtensions;
 using NUnit.Framework;
 using static JuvoPlayer2_0.Tests.Impl.Framework.TestUtils;
 

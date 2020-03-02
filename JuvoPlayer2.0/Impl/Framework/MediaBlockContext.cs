@@ -88,7 +88,7 @@ namespace JuvoPlayer2_0.Impl.Framework
                 .Concat(AllPadReaders(false))
                 .ToList();
         }
-
+        
         private IEnumerable<PadReader> AllPadReaders(bool isPriority)
         {
             var allPads = SinkPads.Concat(SourcePads).Cast<IInputPad>();
