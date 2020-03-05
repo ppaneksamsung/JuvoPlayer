@@ -20,6 +20,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Nito.AsyncEx;
 
@@ -46,6 +47,8 @@ namespace JuvoPlayer2_0.Impl.Framework
         /// Helper list with all pad readers (prioritized and not).
         /// </summary>
         private readonly List<PadReader> _allReaders;
+
+        private readonly Channel<IProperty> _propertyChangedChannel;
 
         public IList<IPad> SinkPads { get; }
         public IList<IPad> SourcePads { get; }
@@ -80,6 +83,7 @@ namespace JuvoPlayer2_0.Impl.Framework
             IEnumerable<IInputPad> sourcePads)
         {
             _streamingThread = new AsyncContextThread();
+            _propertyChangedChannel = Channel.CreateBounded<IProperty>(5);
             MediaBlock = mediaBlock;
             SinkPads = sinkPads.Cast<IPad>().ToList();
             SourcePads = sourcePads.Cast<IPad>().ToList();
@@ -88,18 +92,30 @@ namespace JuvoPlayer2_0.Impl.Framework
                 .Concat(AllPadReaders(false))
                 .ToList();
         }
-        
+
         private IEnumerable<PadReader> AllPadReaders(bool isPriority)
         {
             var allPads = SinkPads.Concat(SourcePads).Cast<IInputPad>();
             return allPads.Select(pad => new PadReader(pad, isPriority));
         }
 
+        public IList<IProperty> Init()
+        {
+            var properties = MediaBlock.Init(this);
+            foreach (var property in properties)
+            {
+                property.PropertyChanged = changedProperty =>
+                {
+                    _propertyChangedChannel.Writer.WriteAsync(changedProperty);
+                };
+            }
+            return properties;
+        }
+
         public void Start()
         {
             Completion = _streamingThread.Factory.StartNew(async () =>
             {
-                await MediaBlock.Init(this);
                 await HandleEvents(_stopCancellationTokenSource.Token);
             }).Unwrap();
         }
@@ -119,6 +135,11 @@ namespace JuvoPlayer2_0.Impl.Framework
 
         internal async Task HandleEventOrWait(CancellationToken token)
         {
+            if (_propertyChangedChannel.Reader.TryRead(out var property))
+            {
+                await MediaBlock.HandlePropertyChanged(property);
+                return;
+            }
             foreach (var reader in _allReaders)
             {
                 if (!reader.TryRead(out var @event)) continue;
@@ -126,13 +147,19 @@ namespace JuvoPlayer2_0.Impl.Framework
                 return;
             }
 
-            var waitPool = _allReaders
-                .Select(reader => reader.WaitToReadAsync(token).AsTask())
-                .Where(waitingRead => !waitingRead.IsCompleted)
-                .ToList();
+            using (var cts = new CancellationTokenSource())
+            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, token))
+            {
+                var waitPool = _allReaders
+                    .Select(reader => reader.WaitToReadAsync(linkedCts.Token).AsTask())
+                    .Append(_propertyChangedChannel.Reader.WaitToReadAsync(linkedCts.Token).AsTask())
+                    .Where(waitingRead => !waitingRead.IsCompleted)
+                    .ToList();
 
-            var waitTask = waitPool.Count != _allReaders.Count ? Task.CompletedTask : Task.WhenAny(waitPool);
-            await waitTask;
+                var waitTask = waitPool.Count != _allReaders.Count ? Task.CompletedTask : Task.WhenAny(waitPool);
+                await waitTask;
+                cts.Cancel();
+            }
         }
 
         private async Task HandleEvent(IPad targetPad, IEvent @event)

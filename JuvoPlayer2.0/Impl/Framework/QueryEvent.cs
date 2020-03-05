@@ -18,15 +18,36 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace JuvoPlayer2_0.Impl.Framework
 {
-    public interface IMediaBlock : IDisposable
+    public class QueryEvent<TValue> : IEvent
     {
-        IList<IProperty> Init(IMediaBlockContext context);
-        Task HandlePadEvent(IPad pad, IEvent @event);
-        Task HandlePropertyChanged(IProperty property);
+        private readonly TaskCompletionSource<TValue> _completionSource = new TaskCompletionSource<TValue>();
+
+        public EventFlags Flags { get; }
+
+        public Task<TValue> Completion => _completionSource.Task;
+
+        public QueryEvent()
+        {
+            Flags = EventFlags.Downstream | EventFlags.IsPrioritized;
+        }
+
+        public void SetResult(TValue value)
+        {
+            _completionSource.SetResult(value);
+        }
+
+        public void SetCancelled()
+        {
+            _completionSource.SetCanceled();
+        }
+
+        public void SetException(Exception ex)
+        {
+            _completionSource.SetException(ex);
+        }
     }
 }

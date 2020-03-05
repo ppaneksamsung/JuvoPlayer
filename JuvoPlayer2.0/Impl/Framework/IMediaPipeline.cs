@@ -23,10 +23,12 @@ namespace JuvoPlayer2_0.Impl.Framework
 {
     public interface IMediaPipeline
     {
+        PropertyRegistry PropertyRegistry { get; }
+        void Init();
+        void Start();
+        void Stop();
         ValueTask Send(IEvent @event);
         ValueTask<bool> WaitForReadAsync();
         bool TryRead(out IEvent @event);
-        void Start();
-        void Stop();
     }
 }
