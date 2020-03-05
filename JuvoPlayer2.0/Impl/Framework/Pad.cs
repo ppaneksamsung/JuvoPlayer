@@ -59,9 +59,9 @@ namespace JuvoPlayer2_0.Impl.Framework
             if (!IsFlushing)
                 return;
 
-            foreach (var flushEventType in new [] { typeof(FlushStartEvent), typeof(FlushStopEvent)})
-                if (@event.GetType() == flushEventType)
-                    return;
+            var eventType = @event.GetType();
+            if (eventType == typeof(FlushStartEvent) || eventType == typeof(FlushStopEvent))
+                return;
 
             throw new InvalidOperationException("Cannot send event while pad flushes");
         }
