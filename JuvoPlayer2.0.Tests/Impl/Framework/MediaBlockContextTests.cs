@@ -33,7 +33,7 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
     public class MediaBlockContextTests
     {
         [Test]
-        public async Task Start_Called_InitializesBlock()
+        public void Init_Called_InitializesBlock()
         {
             var mediaBlockMock = StubMediaBlock();
             var context = Create(new CreateArgs
@@ -41,11 +41,33 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
                 MediaBlock = mediaBlockMock
             });
 
+            context.Init();
+
+            mediaBlockMock.Received().Init(Arg.Is(context));
+        }
+
+        [Test]
+        public void Start_Called_DoesntComplete()
+        {
+            var context = Create();
+
+            context.Start();
+            var completionStatus = context.Completion.IsCompleted;
+
+            Assert.That(completionStatus, Is.False);
+        }
+
+        [Test]
+        public async Task StartStop_Called_BlockCompletes()
+        {
+            var context = Create();
+
             context.Start();
             context.Stop();
             await context.Completion;
+            var completionStatus = context.Completion.IsCompleted;
 
-            await mediaBlockMock.Received().Init(Arg.Is(context));
+            Assert.That(completionStatus, Is.True);
         }
 
         [TestCase(PadDirection.Sink, EventFlags.IsPrioritized)]
@@ -210,6 +232,35 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
 
             Assert.That(sinkPadStub.IsFlushing, Is.False);
             Assert.That(sourcePadStub.IsFlushing, Is.False);
+        }
+
+        [Test]
+        public void Properties_InitCalled_InstallsPropertyChangedDelegate()
+        {
+            var mediaBlockStub = StubMediaBlock();
+            var propertyStub = Substitute.For<IProperty>();
+            propertyStub.PropertyChanged = null;
+            mediaBlockStub.Init(Arg.Any<IMediaBlockContext>()).Returns(new List<IProperty> {propertyStub});
+            var context = Create(new CreateArgs {MediaBlock = mediaBlockStub});
+
+            context.Init();
+
+            Assert.That(propertyStub.PropertyChanged, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Properties_PropertyChanged_NotifiesMediaBlock()
+        {
+            var mediaBlockMock = StubMediaBlock();
+            var propertyStub = Substitute.For<IProperty>();
+            mediaBlockMock.Init(Arg.Any<MediaBlockContext>()).Returns(new List<IProperty> {propertyStub});
+            var context = Create(new CreateArgs {MediaBlock = mediaBlockMock});
+            context.Init();
+
+            propertyStub.PropertyChanged.Invoke(propertyStub);
+            await context.HandleEventOrWait(CancellationToken.None);
+
+            await mediaBlockMock.Received().HandlePropertyChanged(Arg.Is(propertyStub));
         }
 
         private IInputPad CreatePad(PadDirection type, Priority priority, Dictionary<Priority, IEvent> events)

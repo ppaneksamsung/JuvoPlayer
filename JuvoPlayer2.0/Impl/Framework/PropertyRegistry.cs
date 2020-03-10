@@ -19,14 +19,33 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace JuvoPlayer2_0.Impl.Framework
 {
-    public interface IMediaBlock : IDisposable
+    public class PropertyRegistry
     {
-        IList<IProperty> Init(IMediaBlockContext context);
-        Task HandlePadEvent(IPad pad, IEvent @event);
-        Task HandlePropertyChanged(IProperty property);
+        private readonly IDictionary<Type, IProperty> _properties;
+
+        public PropertyRegistry(IDictionary<Type, IProperty> properties)
+        {
+            _properties = properties;
+        }
+
+        public PropertyRegistry(IEnumerable<IProperty> properties)
+        {
+            _properties = new Dictionary<Type, IProperty>();
+            foreach (var property in properties)
+                _properties[property.GetType()] = property;
+        }
+
+        public TProperty Get<TProperty>() where TProperty : IProperty
+        {
+            return (TProperty) _properties[typeof(TProperty)];
+        }
+
+        public IProperty Get(Type propertyType)
+        {
+            return _properties[propertyType];
+        }
     }
 }

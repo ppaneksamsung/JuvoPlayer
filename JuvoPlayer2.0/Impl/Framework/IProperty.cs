@@ -17,16 +17,18 @@
  *
  */
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
 namespace JuvoPlayer2_0.Impl.Framework
 {
-    public interface IMediaBlock : IDisposable
+    public delegate void PropertyChangedDelegate(IProperty property);
+
+    public interface IProperty
     {
-        IList<IProperty> Init(IMediaBlockContext context);
-        Task HandlePadEvent(IPad pad, IEvent @event);
-        Task HandlePropertyChanged(IProperty property);
+        PropertyChangedDelegate PropertyChanged { get; set; }
+    }
+
+    public interface IProperty<TValue> : IProperty
+    {
+        void Write(TValue value);
+        TValue Read();
     }
 }

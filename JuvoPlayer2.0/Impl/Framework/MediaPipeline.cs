@@ -18,6 +18,7 @@
  */
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,11 +28,37 @@ namespace JuvoPlayer2_0.Impl.Framework
     {
         private readonly IInputPad _srcPad;
         public IList<IMediaBlockContext> Blocks { get; }
+        public PropertyRegistry PropertyRegistry { get; private set; }
 
         public MediaPipeline(IList<IMediaBlockContext> blocks, IInputPad srcPad)
         {
             _srcPad = srcPad;
             Blocks = blocks;
+        }
+
+        public void Init()
+        {
+            var allProperties = new List<IProperty>();
+
+            foreach (var block in Blocks)
+            {
+                var blockProperties = block.Init();
+                allProperties.AddRange(blockProperties);
+            }
+
+            PropertyRegistry = new PropertyRegistry(allProperties);
+        }
+
+        public void Start()
+        {
+            foreach (var block in Blocks)
+                block.Start();
+        }
+
+        public void Stop()
+        {
+            foreach (var block in Blocks)
+                block.Stop();
         }
 
         public ValueTask Send(IEvent @event)
@@ -53,18 +80,6 @@ namespace JuvoPlayer2_0.Impl.Framework
         {
             @event = default;
             return _srcPad.TryPriorityRead(out @event) || _srcPad.TryRead(out @event);
-        }
-
-        public void Start()
-        {
-            foreach (var block in Blocks)
-                block.Start();
-        }
-
-        public void Stop()
-        {
-            foreach (var block in Blocks)
-                block.Stop();
         }
     }
 }

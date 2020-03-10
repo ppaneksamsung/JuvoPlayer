@@ -17,6 +17,7 @@
  *
  */
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using JuvoPlayer2_0.Impl.Framework;
 using NSubstitute;
@@ -28,6 +29,29 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
     [TestFixture]
     public class MediaPipelineTests
     {
+        [Test]
+        public void Properties_InitCalled_AddsPropertiesToRegistry()
+        {
+            var srcPadStub = StubPad(PadDirection.Source);
+            var propertyStub1 = Substitute.For<IProperty<int>>();
+            var mediaBlockStub1 = Substitute.For<IMediaBlockContext>();
+            mediaBlockStub1.Init().Returns(new List<IProperty> {propertyStub1});
+
+            var propertyStub2 = Substitute.For<IProperty<bool>>();
+            var mediaBlockStub2 = Substitute.For<IMediaBlockContext>();
+            mediaBlockStub2.Init().Returns(new List<IProperty> {propertyStub2});
+
+            var pipeline = new MediaPipeline(new[] {mediaBlockStub1, mediaBlockStub2}, srcPadStub);
+
+            pipeline.Init();
+            var registry = pipeline.PropertyRegistry;
+
+            foreach (var property in new IProperty[] {propertyStub1, propertyStub2})
+            {
+                Assert.That(registry.Get(property.GetType()), Is.Not.Null);
+            }
+        }
+
         [Test]
         public void Start_Called_StartsAllBlocks()
         {
