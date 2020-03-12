@@ -196,10 +196,13 @@ namespace JuvoPlayer2_0.Impl.Framework
 
         public Task ForwardEvent(IEvent @event, CancellationToken token = default)
         {
-            var pads = @event.Flags.HasFlag(EventFlags.Downstream) ? SourcePads : SinkPads;
+            var flags = @event.Flags;
+            if (flags.HasFlag(EventFlags.Downstream) && flags.HasFlag(EventFlags.Upstream))
+                throw new InvalidOperationException("Could not determine direction");
+
+            var pads = flags.HasFlag(EventFlags.Downstream) ? SourcePads : SinkPads;
             var pendingTasks = pads.Select(pad => pad.SendEvent(@event, token).AsTask()).ToList();
             return Task.WhenAll(pendingTasks);
         }
-
     }
 }

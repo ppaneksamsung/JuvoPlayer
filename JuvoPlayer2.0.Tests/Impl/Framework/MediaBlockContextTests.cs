@@ -263,6 +263,16 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
             await mediaBlockMock.Received().HandlePropertyChanged(Arg.Is(propertyStub));
         }
 
+        [Test]
+        public void ForwardEvent_UpstreamAndDownstreamEvent_Rejects()
+        {
+            var context = Create();
+            var eventStub = StubEvent(EventFlags.Downstream | EventFlags.Upstream);
+
+            Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await context.ForwardEvent(eventStub, CancellationToken.None));
+        }
+
         private IInputPad CreatePad(PadDirection type, Priority priority, Dictionary<Priority, IEvent> events)
         {
             var pad = StubPad(type);
