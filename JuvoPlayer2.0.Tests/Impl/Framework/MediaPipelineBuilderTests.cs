@@ -28,19 +28,32 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
     public class MediaPipelineBuilderTests
     {
         [Test]
-        public void CreatePipeline_NoLinks_ReturnsNull()
+        public void CreatePipeline_SrcSet_ReturnsNull()
         {
             var builder = new MediaPipelineBuilder();
             var dummyRoot = StubMediaBlock();
 
-            builder.SetRoot(dummyRoot);
+            builder.SetSrc(dummyRoot);
             var pipeline = builder.CreatePipeline();
 
             Assert.That(pipeline, Is.Null);
         }
 
         [Test]
-        public void CreatePipeline_NoRootSet_ReturnsNull()
+        public void CreatePipeline_SinkSet_ReturnsNull()
+        {
+            var builder = new MediaPipelineBuilder();
+            var sinkBlockStub = StubMediaBlock();
+
+            builder
+                .SetSink(sinkBlockStub);
+            var pipeline = builder.CreatePipeline();
+
+            Assert.That(pipeline, Is.Null);
+        }
+
+        [Test]
+        public void CreatePipeline_LinkSet_ReturnsNull()
         {
             var builder = new MediaPipelineBuilder();
             var srcBlockStub = StubMediaBlock();
@@ -51,6 +64,50 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
             var pipeline = builder.CreatePipeline();
 
             Assert.That(pipeline, Is.Null);
+        }
+
+        [Test]
+        public void CreatePipeline_LinkAndSinkSet_ReturnsNull()
+        {
+            var builder = new MediaPipelineBuilder();
+            var srcBlockStub = StubMediaBlock();
+            var sinkBlockStub = StubMediaBlock();
+
+            builder
+                .LinkMediaBlocks(srcBlockStub, sinkBlockStub)
+                .SetSink(sinkBlockStub);
+            var pipeline = builder.CreatePipeline();
+
+            Assert.That(pipeline, Is.Null);
+        }
+
+        [Test]
+        public void CreatePipeline_SrcAndLinkSet_ReturnsNull()
+        {
+            var builder = new MediaPipelineBuilder();
+            var srcBlockStub = StubMediaBlock();
+            var sinkBlockStub = StubMediaBlock();
+
+            builder
+                .SetSrc(srcBlockStub)
+                .LinkMediaBlocks(srcBlockStub, sinkBlockStub);
+            var pipeline = builder.CreatePipeline();
+
+            Assert.That(pipeline, Is.Null);
+        }
+
+        [Test]
+        public void CreatePipeline_SameSrcAndSinkSet_CreatesSuccessfully()
+        {
+            var builder = new MediaPipelineBuilder();
+            var srcBlockStub = StubMediaBlock();
+
+            builder
+                .SetSrc(srcBlockStub)
+                .SetSink(srcBlockStub);
+            var pipeline = builder.CreatePipeline();
+
+            Assert.That(pipeline, Is.Not.Null);
         }
 
         [Test]
@@ -61,8 +118,9 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
             var sinkBlockStub = StubMediaBlock();
 
             builder
-                .SetRoot(srcBlockStub)
-                .LinkMediaBlocks(srcBlockStub, sinkBlockStub);
+                .SetSrc(srcBlockStub)
+                .LinkMediaBlocks(srcBlockStub, sinkBlockStub)
+                .SetSink(sinkBlockStub);
             var pipeline = builder.CreatePipeline();
 
             Assert.That(pipeline, Is.Not.Null);
@@ -76,8 +134,9 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
             var sinkBlockStub = StubMediaBlock();
 
             builder
-                .SetRoot(srcBlockStub)
-                .LinkMediaBlocks(srcBlockStub, sinkBlockStub);
+                .SetSrc(srcBlockStub)
+                .LinkMediaBlocks(srcBlockStub, sinkBlockStub)
+                .SetSink(sinkBlockStub);
             var pipeline = builder.CreatePipelineImpl();
             var blocksCount = pipeline.Blocks.Count;
 
@@ -92,8 +151,9 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
             var sinkBlockStub = StubMediaBlock();
 
             builder
-                .SetRoot(srcBlockStub)
-                .LinkMediaBlocks(srcBlockStub, sinkBlockStub);
+                .SetSrc(srcBlockStub)
+                .LinkMediaBlocks(srcBlockStub, sinkBlockStub)
+                .SetSink(sinkBlockStub);
             var pipeline = builder.CreatePipelineImpl();
             var sinkPadsCount = pipeline.Blocks[0].SinkPads.Count;
 
@@ -109,8 +169,9 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
             var eventStub = StubEvent();
 
             builder
-                .SetRoot(srcBlockStub)
-                .LinkMediaBlocks(srcBlockStub, sinkBlockStub);
+                .SetSrc(srcBlockStub)
+                .LinkMediaBlocks(srcBlockStub, sinkBlockStub)
+                .SetSink(sinkBlockStub);
             var pipeline = builder.CreatePipelineImpl();
 
             var srcPad = pipeline.Blocks[0].SourcePads[0];

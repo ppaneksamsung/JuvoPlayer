@@ -17,12 +17,14 @@
  *
  */
 
-namespace JuvoPlayer2_0.Impl.Framework
+using JuvoPlayer2_0.Impl.Framework;
+
+namespace JuvoPlayer2_0.Impl.Common
 {
-    public enum MediaType
+    public class ContentChangedEvent : EventBase
     {
-        Unknown,
-        Audio,
-        Video,
+        public ContentChangedEvent() : base(EventFlags.Downstream)
+        {
+        }
     }
 }

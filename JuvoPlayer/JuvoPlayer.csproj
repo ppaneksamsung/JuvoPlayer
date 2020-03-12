@@ -45,7 +45,7 @@
       <ExcludeAssets>Runtime</ExcludeAssets>
     </PackageReference>
     <!-- Tizen.* packages are excluded from runtime -->
-    <PackageReference Include="Tizen.NET.TV" Version="5.5.0.4997532">
+    <PackageReference Include="Tizen.NET.TV" Version="6.6.0.5599517">
       <ExcludeAssets>Runtime</ExcludeAssets>
     </PackageReference>
    

@@ -17,12 +17,15 @@
  *
  */
 
-namespace JuvoPlayer2_0.Impl.Framework
+using JuvoPlayer.Common;
+using JuvoPlayer2_0.Impl.Framework;
+
+namespace JuvoPlayer2_0.Impl.Common
 {
-    public enum MediaType
+    public class DRMInitDataEvent : EventBase<DRMInitData>
     {
-        Unknown,
-        Audio,
-        Video,
+        public DRMInitDataEvent(DRMInitData payload) : base(payload, EventFlags.Downstream)
+        {
+        }
     }
 }

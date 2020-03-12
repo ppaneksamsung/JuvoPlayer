@@ -1,0 +1,24 @@
+<Project Sdk="Tizen.NET.Sdk/1.0.9">
+    
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>tizen50</TargetFramework>
+        <NoWarn>NU1605</NoWarn>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <ProjectReference Include="..\JuvoLogger.Tizen\JuvoLogger.Tizen.csproj" />
+      <ProjectReference Include="..\JuvoPlayer2.0.Tests\JuvoPlayer2.0.Tests.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="NSubstitute" Version="3.1.0" />
+        <PackageReference Include="NUnit" Version="3.9.0" />
+        <PackageReference Include="NUnitLite" Version="3.9.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="res\googlecar\car-20120827-89.mp4-3901498-7700066" />
+      <EmbeddedResource Include="res\googlecar\car-20120827-89.mp4-init-segment" />
+    </ItemGroup>
+</Project>

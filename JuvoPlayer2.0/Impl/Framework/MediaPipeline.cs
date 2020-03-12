@@ -27,12 +27,14 @@ namespace JuvoPlayer2_0.Impl.Framework
     public class MediaPipeline : IMediaPipeline
     {
         private readonly IInputPad _srcPad;
+        private readonly IList<IInputPad> _sinkPads;
         public IList<IMediaBlockContext> Blocks { get; }
         public PropertyRegistry PropertyRegistry { get; private set; }
 
-        public MediaPipeline(IList<IMediaBlockContext> blocks, IInputPad srcPad)
+        public MediaPipeline(IList<IMediaBlockContext> blocks, IInputPad srcPad, IList<IInputPad> sinkPads)
         {
             _srcPad = srcPad;
+            _sinkPads = sinkPads;
             Blocks = blocks;
         }
 
@@ -61,12 +63,12 @@ namespace JuvoPlayer2_0.Impl.Framework
                 block.Stop();
         }
 
-        public ValueTask Send(IEvent @event)
+        public ValueTask SendSrc(IEvent @event)
         {
             return _srcPad.SendEvent(@event);
         }
 
-        public async ValueTask<bool> WaitForReadAsync()
+        public async ValueTask<bool> WaitForSrcReadAsync()
         {
             var cts = new CancellationTokenSource();
             var readAsync = _srcPad.WaitToReadAsync(cts.Token).AsTask();
@@ -76,10 +78,42 @@ namespace JuvoPlayer2_0.Impl.Framework
             return true;
         }
 
-        public bool TryRead(out IEvent @event)
+        public bool TrySrcRead(out IEvent @event)
         {
             @event = default;
             return _srcPad.TryPriorityRead(out @event) || _srcPad.TryRead(out @event);
+        }
+
+        public async ValueTask<bool> WaitForSinkReadAsync()
+        {
+            var cts = new CancellationTokenSource();
+            var tasks = new List<Task>();
+            foreach (var sinkPad in _sinkPads)
+            {
+                var readPriorityAsync = sinkPad.WaitToPriorityReadAsync(cts.Token).AsTask();
+                var readAsync = sinkPad.WaitToReadAsync(cts.Token).AsTask();
+                tasks.Add(readPriorityAsync);
+                tasks.Add(readAsync);
+            }
+            await Task.WhenAny(tasks);
+            cts.Cancel();
+            return true;
+        }
+
+        public bool TrySinkRead(out IEvent @event)
+        {
+            @event = default;
+            foreach (var sinkPad in _sinkPads)
+            {
+                if (sinkPad.TryPriorityRead(out @event))
+                    return true;
+            }
+            foreach (var sinkPad in _sinkPads)
+            {
+                if (sinkPad.TryRead(out @event))
+                    return true;
+            }
+            return false;
         }
     }
 }

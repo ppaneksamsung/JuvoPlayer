@@ -17,12 +17,16 @@
  *
  */
 
-namespace JuvoPlayer2_0.Impl.Framework
+using JuvoPlayer.Common;
+using JuvoPlayer2_0.Impl.Framework;
+
+namespace JuvoPlayer2_0.Impl.Common
 {
-    public enum MediaType
+    public class StreamConfigEvent : EventBase<StreamConfig>
     {
-        Unknown,
-        Audio,
-        Video,
+        public StreamConfigEvent(StreamConfig streamConfig)
+            : base(streamConfig, EventFlags.Downstream)
+        {
+        }
     }
 }

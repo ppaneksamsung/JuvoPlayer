@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JuvoPlayer2.0", "JuvoPlayer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JuvoPlayer2.0.Tests", "JuvoPlayer2.0.Tests\JuvoPlayer2.0.Tests.csproj", "{BEFB7BCF-2CA5-4043-88D2-A63A6C6E4353}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JuvoPlayer2.0.TizenTests", "JuvoPlayer2.0.TizenTests\JuvoPlayer2.0.TizenTests.csproj", "{21F844E0-1ED0-43F8-AE5F-F6E13ABCB988}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -232,6 +234,18 @@ Global
 		{BEFB7BCF-2CA5-4043-88D2-A63A6C6E4353}.Release|x64.Build.0 = Release|Any CPU
 		{BEFB7BCF-2CA5-4043-88D2-A63A6C6E4353}.Release|x86.ActiveCfg = Release|Any CPU
 		{BEFB7BCF-2CA5-4043-88D2-A63A6C6E4353}.Release|x86.Build.0 = Release|Any CPU
+		{21F844E0-1ED0-43F8-AE5F-F6E13ABCB988}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21F844E0-1ED0-43F8-AE5F-F6E13ABCB988}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21F844E0-1ED0-43F8-AE5F-F6E13ABCB988}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{21F844E0-1ED0-43F8-AE5F-F6E13ABCB988}.Debug|x64.Build.0 = Debug|Any CPU
+		{21F844E0-1ED0-43F8-AE5F-F6E13ABCB988}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{21F844E0-1ED0-43F8-AE5F-F6E13ABCB988}.Debug|x86.Build.0 = Debug|Any CPU
+		{21F844E0-1ED0-43F8-AE5F-F6E13ABCB988}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21F844E0-1ED0-43F8-AE5F-F6E13ABCB988}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21F844E0-1ED0-43F8-AE5F-F6E13ABCB988}.Release|x64.ActiveCfg = Release|Any CPU
+		{21F844E0-1ED0-43F8-AE5F-F6E13ABCB988}.Release|x64.Build.0 = Release|Any CPU
+		{21F844E0-1ED0-43F8-AE5F-F6E13ABCB988}.Release|x86.ActiveCfg = Release|Any CPU
+		{21F844E0-1ED0-43F8-AE5F-F6E13ABCB988}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

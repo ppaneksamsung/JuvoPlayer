@@ -17,12 +17,15 @@
  *
  */
 
-namespace JuvoPlayer2_0.Impl.Framework
+using JuvoPlayer.Common;
+using JuvoPlayer2_0.Impl.Framework;
+
+namespace JuvoPlayer2_0.Impl.Common
 {
-    public enum MediaType
+    public class PacketEvent : EventBase<Packet>
     {
-        Unknown,
-        Audio,
-        Video,
+        public PacketEvent(Packet payload) : base(payload, EventFlags.Downstream)
+        {
+        }
     }
 }

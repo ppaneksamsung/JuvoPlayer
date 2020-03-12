@@ -17,12 +17,15 @@
  *
  */
 
-namespace JuvoPlayer2_0.Impl.Framework
+using System;
+using JuvoPlayer2_0.Impl.Framework;
+
+namespace JuvoPlayer2_0.Impl.Common
 {
-    public enum MediaType
+    public class ErrorEvent : EventBase<Exception>
     {
-        Unknown,
-        Audio,
-        Video,
+        public ErrorEvent(Exception payload) : base(payload, EventFlags.Upstream)
+        {
+        }
     }
 }

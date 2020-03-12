@@ -17,17 +17,15 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="API" />
-      <Folder Include="Impl\Blocks" />
-      <Folder Include="Impl\Common" />
-      <Folder Include="Impl\Utils" />
-    </ItemGroup>
-
-    <ItemGroup>
       <PackageReference Include="Nito.AsyncEx.Context" Version="5.0.0-pre-05" />
       <PackageReference Include="Nito.AsyncEx.Coordination" Version="5.0.0-pre-05" />
       <PackageReference Include="System.Reactive" Version="4.1.2" />
       <PackageReference Include="System.Threading.Channels" Version="4.5.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\JuvoLogger\JuvoLogger.csproj" />
+      <ProjectReference Include="..\JuvoPlayer\JuvoPlayer.csproj" />
     </ItemGroup>
 
 </Project>

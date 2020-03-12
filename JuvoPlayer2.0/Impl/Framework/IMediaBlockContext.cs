@@ -19,6 +19,7 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace JuvoPlayer2_0.Impl.Framework
 {
@@ -29,6 +30,7 @@ namespace JuvoPlayer2_0.Impl.Framework
         void Stop();
         IList<IPad> SinkPads { get; }
         IList<IPad> SourcePads { get; }
+        Task ForwardEvent(IEvent @event, CancellationToken token = default);
         SynchronizationContext SynchronizationContext { get; }
     }
 }

@@ -17,12 +17,16 @@
  *
  */
 
-namespace JuvoPlayer2_0.Impl.Framework
+using System;
+using JuvoPlayer2_0.Impl.Framework;
+
+namespace JuvoPlayer2_0.Impl.Common
 {
-    public enum MediaType
+    public class ClipDurationEvent : EventBase<TimeSpan>
     {
-        Unknown,
-        Audio,
-        Video,
+        public ClipDurationEvent(TimeSpan duration)
+            : base(duration, EventFlags.Downstream)
+        {
+        }
     }
 }

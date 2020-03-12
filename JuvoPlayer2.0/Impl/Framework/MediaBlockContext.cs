@@ -17,6 +17,7 @@
  *
  */
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -52,6 +53,7 @@ namespace JuvoPlayer2_0.Impl.Framework
 
         public IList<IPad> SinkPads { get; }
         public IList<IPad> SourcePads { get; }
+
         public SynchronizationContext SynchronizationContext => _streamingThread.Context.SynchronizationContext;
         public IMediaBlock MediaBlock { get; }
         public Task Completion { get; private set; }
@@ -109,6 +111,7 @@ namespace JuvoPlayer2_0.Impl.Framework
                     _propertyChangedChannel.Writer.WriteAsync(changedProperty);
                 };
             }
+
             return properties;
         }
 
@@ -140,6 +143,7 @@ namespace JuvoPlayer2_0.Impl.Framework
                 await MediaBlock.HandlePropertyChanged(property);
                 return;
             }
+
             foreach (var reader in _allReaders)
             {
                 if (!reader.TryRead(out var @event)) continue;
@@ -156,7 +160,7 @@ namespace JuvoPlayer2_0.Impl.Framework
                     .Where(waitingRead => !waitingRead.IsCompleted)
                     .ToList();
 
-                var waitTask = waitPool.Count != _allReaders.Count ? Task.CompletedTask : Task.WhenAny(waitPool);
+                var waitTask = waitPool.Count != _allReaders.Count + 1 ? Task.CompletedTask : Task.WhenAny(waitPool);
                 await waitTask;
                 cts.Cancel();
             }
@@ -189,5 +193,13 @@ namespace JuvoPlayer2_0.Impl.Framework
                     pad.IsFlushing = false;
             }
         }
+
+        public Task ForwardEvent(IEvent @event, CancellationToken token = default)
+        {
+            var pads = @event.Flags.HasFlag(EventFlags.Downstream) ? SourcePads : SinkPads;
+            var pendingTasks = pads.Select(pad => pad.SendEvent(@event, token).AsTask()).ToList();
+            return Task.WhenAll(pendingTasks);
+        }
+
     }
 }

@@ -41,7 +41,7 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
             var mediaBlockStub2 = Substitute.For<IMediaBlockContext>();
             mediaBlockStub2.Init().Returns(new List<IProperty> {propertyStub2});
 
-            var pipeline = new MediaPipeline(new[] {mediaBlockStub1, mediaBlockStub2}, srcPadStub);
+            var pipeline = new MediaPipeline(new[] {mediaBlockStub1, mediaBlockStub2}, srcPadStub , new List<IInputPad>());
 
             pipeline.Init();
             var registry = pipeline.PropertyRegistry;
@@ -58,7 +58,7 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
             var srcPadStub = StubPad(PadDirection.Source);
             var blocks = new[] {Substitute.For<IMediaBlockContext>(), Substitute.For<IMediaBlockContext>()};
 
-            var pipeline = new MediaPipeline(blocks, srcPadStub);
+            var pipeline = new MediaPipeline(blocks, srcPadStub, new List<IInputPad>());
             pipeline.Start();
 
             foreach (var block in blocks)
@@ -71,7 +71,7 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
             var srcPadStub = StubPad(PadDirection.Source);
             var blocks = new[] {Substitute.For<IMediaBlockContext>(), Substitute.For<IMediaBlockContext>()};
 
-            var pipeline = new MediaPipeline(blocks, srcPadStub);
+            var pipeline = new MediaPipeline(blocks, srcPadStub, new List<IInputPad>());
             pipeline.Stop();
 
             foreach (var block in blocks)
@@ -84,9 +84,9 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
             var srcPadMock = StubPad(PadDirection.Source);
             var block = Substitute.For<IMediaBlockContext>();
             var eventStub = StubEvent();
-            var pipeline = new MediaPipeline(new[] {block}, srcPadMock);
+            var pipeline = new MediaPipeline(new[] {block}, srcPadMock, new List<IInputPad>());
 
-            await pipeline.Send(eventStub);
+            await pipeline.SendSrc(eventStub);
 
             await srcPadMock.Received().SendEvent(Arg.Is(eventStub));
         }
@@ -98,10 +98,10 @@ namespace JuvoPlayer2_0.Tests.Impl.Framework
             var srcPadStub = StubPad(PadDirection.Source)
                 .WithEvent(eventStub);
             var block = Substitute.For<IMediaBlockContext>();
-            var pipeline = new MediaPipeline(new[] {block}, srcPadStub);
+            var pipeline = new MediaPipeline(new[] {block}, srcPadStub, new List<IInputPad>());
 
-            await pipeline.WaitForReadAsync();
-            var read = pipeline.TryRead(out var receivedEvent);
+            await pipeline.WaitForSrcReadAsync();
+            var read = pipeline.TrySrcRead(out var receivedEvent);
 
             Assert.That(read, Is.True);
             Assert.That(receivedEvent, Is.EqualTo(eventStub));

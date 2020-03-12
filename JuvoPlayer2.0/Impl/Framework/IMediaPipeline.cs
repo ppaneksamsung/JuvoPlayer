@@ -27,8 +27,10 @@ namespace JuvoPlayer2_0.Impl.Framework
         void Init();
         void Start();
         void Stop();
-        ValueTask Send(IEvent @event);
-        ValueTask<bool> WaitForReadAsync();
-        bool TryRead(out IEvent @event);
+        ValueTask SendSrc(IEvent @event);
+        ValueTask<bool> WaitForSrcReadAsync();
+        bool TrySrcRead(out IEvent @event);
+        ValueTask<bool> WaitForSinkReadAsync();
+        bool TrySinkRead(out IEvent @event);
     }
 }

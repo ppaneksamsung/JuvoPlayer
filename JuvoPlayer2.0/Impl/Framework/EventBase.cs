@@ -17,12 +17,38 @@
  *
  */
 
+using System;
+
 namespace JuvoPlayer2_0.Impl.Framework
 {
-    public enum MediaType
+    public abstract class EventBase : IEvent
     {
-        Unknown,
-        Audio,
-        Video,
+        protected EventBase(EventFlags flags)
+        {
+            Flags = flags;
+        }
+
+        public EventFlags Flags { get; }
+
+        public override string ToString()
+        {
+            return $"{GetType()} [Flags:{Flags}]";
+        }
+    }
+
+    public abstract class EventBase<TPayload> : EventBase
+    {
+        protected EventBase(TPayload payload, EventFlags flags)
+            : base(flags)
+        {
+            Payload = payload;
+        }
+
+        public TPayload Payload { get; }
+
+        public override string ToString()
+        {
+            return $"{GetType()} [Flags:{Flags}, Payload:{Payload}]";
+        }
     }
 }

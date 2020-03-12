@@ -17,12 +17,14 @@
  *
  */
 
-namespace JuvoPlayer2_0.Impl.Framework
+using JuvoPlayer2_0.Impl.Framework;
+
+namespace JuvoPlayer2_0.Impl.Common
 {
-    public enum MediaType
+    public class EosEvent : EventBase
     {
-        Unknown,
-        Audio,
-        Video,
+        public EosEvent() : base(EventFlags.Downstream)
+        {
+        }
     }
 }
