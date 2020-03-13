@@ -31,7 +31,7 @@ using NUnit.Framework;
 namespace JuvoPlayer2_0.TizenTests.Impl.Blocks.Demuxer
 {
     [TestFixture]
-    public class TSDemuxerController
+    public class DemuxerMediaBlockTests
     {
         private DashContent _content;
 
